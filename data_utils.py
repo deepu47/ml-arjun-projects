@@ -1,6 +1,7 @@
 """
-Food Rescue data layer – same logic as Node server.
-Reads/writes data/entries.json and data/alerts.json.
+Food Rescue data layer.
+Uses Excel (food_rescue_entries.xlsx) when present, else entries.json.
+Same schema as Node server so dashboard and Excel can be shared.
 """
 import json
 import os
@@ -9,6 +10,7 @@ from datetime import datetime, timedelta
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 ENTRIES_FILE = os.path.join(DATA_DIR, "entries.json")
+EXCEL_FILE = os.path.join(DATA_DIR, "food_rescue_entries.xlsx")
 ALERTS_FILE = os.path.join(DATA_DIR, "alerts.json")
 HOURS_NEAR_EXPIRY = 48
 ALERT_CATEGORIES = ["frozen", "produce"]
@@ -18,8 +20,73 @@ def _ensure_data_dir():
     os.makedirs(DATA_DIR, exist_ok=True)
 
 
+def _excel_to_entries():
+    """Read entries from Excel file (same format as Node excel-store)."""
+    try:
+        import pandas as pd
+        if not os.path.exists(EXCEL_FILE):
+            return None
+        df = pd.read_excel(EXCEL_FILE, sheet_name="Entries", engine="openpyxl")
+        if df is None or df.empty:
+            return []
+        out = []
+        for _, row in df.iterrows():
+            e = row.to_dict()
+            if not e.get("ItemName") and not e.get("Id"):
+                continue
+            def _str(v, date_only=False):
+                if v is None or (isinstance(v, float) and (v != v or v == 0)): return ""
+                if hasattr(v, "strftime"): return v.strftime("%Y-%m-%d") if date_only else str(v)[:19].replace(" ", "T")
+                s = str(v).strip()
+                return s[:10] if date_only and s else s[:19] if not date_only and s else s
+            out.append({
+                "id": str(e.get("Id", "")),
+                "foodType": e.get("FoodType") or "Other",
+                "itemName": str(e.get("ItemName", "")),
+                "quantity": float(e.get("Quantity", 0)) if e.get("Quantity") not in (None, "") else 0,
+                "unit": str(e.get("Unit", "lbs")),
+                "expiryDate": _str(e.get("ExpiryDate"), date_only=True) or None,
+                "donor": str(e.get("Donor", "")),
+                "volunteerName": str(e.get("VolunteerName", "")),
+                "notes": str(e.get("Notes", "")),
+                "createdAt": _str(e.get("CreatedAt", ""), date_only=False),
+            })
+        return out
+    except Exception:
+        return None
+
+
+def _entries_to_excel(entries):
+    """Write entries to Excel (same format as Node)."""
+    try:
+        import pandas as pd
+        _ensure_data_dir()
+        cols = ["Id", "FoodType", "ItemName", "Quantity", "Unit", "ExpiryDate", "Donor", "VolunteerName", "Notes", "CreatedAt"]
+        rows = []
+        for e in entries:
+            rows.append({
+                "Id": e.get("id"),
+                "FoodType": e.get("foodType"),
+                "ItemName": e.get("itemName"),
+                "Quantity": e.get("quantity"),
+                "Unit": e.get("unit"),
+                "ExpiryDate": e.get("expiryDate"),
+                "Donor": e.get("donor"),
+                "VolunteerName": e.get("volunteerName"),
+                "Notes": e.get("notes"),
+                "CreatedAt": e.get("createdAt", "")[:19] if e.get("createdAt") else "",
+            })
+        df = pd.DataFrame(rows, columns=cols)
+        df.to_excel(EXCEL_FILE, sheet_name="Entries", index=False, engine="openpyxl")
+    except Exception:
+        pass
+
+
 def read_entries():
     _ensure_data_dir()
+    entries = _excel_to_entries()
+    if entries is not None:
+        return entries
     if not os.path.exists(ENTRIES_FILE):
         return []
     try:
@@ -31,6 +98,8 @@ def read_entries():
 
 def write_entries(entries):
     _ensure_data_dir()
+    if os.path.exists(EXCEL_FILE):
+        _entries_to_excel(entries)
     with open(ENTRIES_FILE, "w", encoding="utf-8") as f:
         json.dump(entries, f, indent=2, ensure_ascii=False)
 

@@ -1,40 +1,43 @@
 /**
  * Food Rescue Dashboard – backend
- * Serves form submissions, dashboard API, and runs near-expiry alerts every 2 hours.
+ * Uses Excel as primary data store. Accepts Microsoft Forms (import Excel or Power Automate API).
  */
 
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const cron = require('node-cron');
+const multer = require('multer');
+
+const {
+  readEntriesFromExcel,
+  writeEntriesToExcel,
+  migrateJsonToExcel,
+  parseUploadedExcel,
+  EXCEL_FILE,
+} = require('./excel-store');
 
 const DATA_DIR = path.join(__dirname, 'data');
-const ENTRIES_FILE = path.join(DATA_DIR, 'entries.json');
 const ALERTS_FILE = path.join(DATA_DIR, 'alerts.json');
-const HOURS_NEAR_EXPIRY = 48; // alert when expiry is within 48 hours
-const ALERT_CATEGORIES = ['frozen', 'produce']; // alert only for these types
+const HOURS_NEAR_EXPIRY = 48;
+const ALERT_CATEGORIES = ['frozen', 'produce'];
 
 const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
 function readEntries() {
-  ensureDataDir();
-  if (!fs.existsSync(ENTRIES_FILE)) return [];
-  try {
-    return JSON.parse(fs.readFileSync(ENTRIES_FILE, 'utf8'));
-  } catch {
-    return [];
-  }
+  return readEntriesFromExcel();
 }
 
 function writeEntries(entries) {
-  ensureDataDir();
-  fs.writeFileSync(ENTRIES_FILE, JSON.stringify(entries, null, 2), 'utf8');
+  writeEntriesToExcel(entries);
 }
 
 function readAlerts() {
@@ -206,15 +209,60 @@ app.get('/api/near-expiry', (req, res) => {
   res.json(near);
 });
 
+// —— Import from Excel (e.g. Microsoft Forms export) ——
+app.post('/api/import/excel', upload.single('file'), (req, res) => {
+  if (!req.file || !req.file.buffer) {
+    return res.status(400).json({ error: 'No file uploaded. Use form field name: file' });
+  }
+  const replace = req.query.replace === '1' || req.query.replace === 'true';
+  try {
+    const rows = parseUploadedExcel(req.file.buffer);
+    if (rows.length === 0) {
+      return res.status(400).json({ error: 'No valid rows found. Ensure columns like Food Type, Item name, Quantity, Expiry date exist.' });
+    }
+    const newEntries = rows.map((r) => ({
+      id: r.Id,
+      foodType: r.FoodType,
+      itemName: r.ItemName,
+      quantity: r.Quantity,
+      unit: r.Unit,
+      expiryDate: r.ExpiryDate,
+      donor: r.Donor,
+      volunteerName: r.VolunteerName,
+      notes: r.Notes,
+      createdAt: r.CreatedAt,
+    }));
+    const merged = replace ? newEntries : [...newEntries, ...readEntries()];
+    writeEntries(merged);
+    res.status(200).json({ count: newEntries.length, message: replace ? `Replaced with ${newEntries.length} row(s).` : `Imported ${newEntries.length} row(s). Data saved to Excel.` });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Import failed' });
+  }
+});
+
+// —— Export current data as Excel (review/edit in Excel) ——
+app.get('/api/export/excel', (req, res) => {
+  try {
+    if (!fs.existsSync(EXCEL_FILE)) {
+      return res.status(404).json({ error: 'No data yet. Add entries or import an Excel file first.' });
+    }
+    res.download(EXCEL_FILE, 'food_rescue_entries.xlsx', (err) => {
+      if (err) res.status(500).json({ error: 'Download failed' });
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Export failed' });
+  }
+});
+
 // —— Cron: every 2 hours ——
 cron.schedule('0 */2 * * *', () => runExpiryCheck());
-// Run once on startup
+migrateJsonToExcel();
 runExpiryCheck();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Food Rescue server running at http://localhost:${PORT}`);
-  console.log(`Form: http://localhost:${PORT}/form.html`);
-  console.log(`Dashboard: http://localhost:${PORT}/`);
-  console.log(`Expiry check runs every 2 hours; next run in 2 hours.`);
+  console.log(`Dashboard: http://localhost:${PORT}/  |  Import Excel: http://localhost:${PORT}/import.html`);
+  console.log(`Data is stored in Excel: data/food_rescue_entries.xlsx (review and edit there).`);
+  console.log(`Expiry check runs every 2 hours.`);
 });

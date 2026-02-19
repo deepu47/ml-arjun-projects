@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import from Excel – Food Rescue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="form.css">
+</head>
+<body>
+  <div class="form-page">
+    <nav class="nav nav--main">
+      <a href="index.html">Operations</a>
+      <a href="supervisor.html">Supervisor</a>
+      <a href="warehouse.html">Warehouse</a>
+      <a href="form.html">+ Volunteer entry</a>
+      <a href="import.html" class="nav--active">Import Excel</a>
+    </nav>
+    <header class="form-header">
+      <a href="index.html" class="form-header__back">← Dashboard</a>
+      <h1>Import from Excel</h1>
+      <p class="form-header__sub">Use Microsoft Forms for food entry, then bring data here. Upload an Excel file (e.g. exported from Forms) or download the current data to review and edit in Excel.</p>
+    </header>
+
+    <div class="import-section card">
+      <h2 class="form-section__title">Upload Excel (e.g. Microsoft Forms export)</h2>
+      <p class="import-hint">Your Excel should have columns such as: <strong>Food type</strong>, <strong>Item name</strong>, <strong>Quantity</strong>, <strong>Unit</strong>, <strong>Expiry date</strong>, <strong>Donor</strong>, <strong>Volunteer name</strong>, <strong>Notes</strong>. The importer will match similar column names. New rows are added to the dashboard data.</p>
+      <form id="importForm" class="import-form">
+        <div class="field">
+          <label for="excelFile">Choose Excel file (.xlsx, .xls)</label>
+          <input type="file" id="excelFile" name="file" accept=".xlsx,.xls" required>
+        </div>
+        <div class="field">
+          <label class="checkbox-label">
+            <input type="checkbox" id="replaceData" name="replace"> Replace all existing data with this file (uncheck to merge)
+          </label>
+        </div>
+        <button type="submit" class="btn btn--primary">Import into dashboard</button>
+      </form>
+      <div id="importMessage" class="form-message" aria-live="polite"></div>
+    </div>
+
+    <div class="import-section card">
+      <h2 class="form-section__title">Download current data as Excel</h2>
+      <p class="import-hint">Open the file in Excel to review and edit. Save your changes; you can re-upload this file later to update the dashboard, or keep using the dashboard and export again for a fresh copy.</p>
+      <p>
+        <a href="/api/export/excel" class="btn btn--secondary" download="food_rescue_entries.xlsx">Download food_rescue_entries.xlsx</a>
+      </p>
+    </div>
+
+    <div class="import-section card">
+      <h2 class="form-section__title">Connect Microsoft Forms (Power Automate)</h2>
+      <p class="import-hint">To send each Form response automatically to this dashboard, use Power Automate:</p>
+      <ol class="import-steps">
+        <li>Create a flow: <strong>When a new response is submitted</strong> (Microsoft Forms) → <strong>HTTP</strong> (or <strong>Request</strong>).</li>
+        <li>Method: <strong>POST</strong>, URL: <strong><code id="apiUrl">https://your-server/api/entries</code></strong></li>
+        <li>Body (JSON): map Form fields to <code>foodType</code>, <code>itemName</code>, <code>quantity</code>, <code>unit</code>, <code>expiryDate</code>, <code>donor</code>, <code>volunteerName</code>, <code>notes</code>.</li>
+      </ol>
+      <p class="import-hint">Each submission will be appended to the Excel-backed data and appear on the dashboard.</p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      document.getElementById('apiUrl').textContent = window.location.origin + '/api/entries';
+      var form = document.getElementById('importForm');
+      var msg = document.getElementById('importMessage');
+      var fileInput = document.getElementById('excelFile');
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        msg.textContent = '';
+        msg.className = 'form-message';
+        if (!fileInput.files || !fileInput.files[0]) {
+          msg.textContent = 'Please choose an Excel file.';
+          msg.className = 'form-message visible error';
+          return;
+        }
+        var replace = document.getElementById('replaceData').checked;
+        var url = '/api/import/excel' + (replace ? '?replace=1' : '');
+        var fd = new FormData();
+        fd.append('file', fileInput.files[0]);
+        fetch(url, { method: 'POST', body: fd })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+          .then(function (_) {
+            if (_.ok) {
+              msg.textContent = (_.data.message || _.data.count + ' row(s) imported. Data saved to Excel.');
+              msg.className = 'form-message visible success';
+              fileInput.value = '';
+            } else {
+              msg.textContent = _.data.error || 'Import failed.';
+              msg.className = 'form-message visible error';
+            }
+          })
+          .catch(function () {
+            msg.textContent = 'Import failed. Is the server running?';
+            msg.className = 'form-message visible error';
+          });
+      });
+    })();
+  </script>
+</body>
+</html>
