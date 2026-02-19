@@ -121,6 +121,35 @@ app.post('/api/entries', (req, res) => {
   res.status(201).json(entry);
 });
 
+// Batch: accept multiple entries at once
+app.post('/api/entries/batch', (req, res) => {
+  const entries = readEntries();
+  const body = req.body || {};
+  const items = Array.isArray(body.entries) ? body.entries : [];
+  const sharedVolunteer = body.volunteerName || '';
+  const sharedDonor = body.donor || '';
+  const created = [];
+  for (const item of items) {
+    const id = `entry-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const entry = {
+      id,
+      foodType: item.foodType || 'Other',
+      itemName: item.itemName || '',
+      quantity: item.quantity != null ? Number(item.quantity) : 0,
+      unit: item.unit || 'lbs',
+      expiryDate: item.expiryDate || null,
+      donor: item.donor != null && item.donor !== '' ? item.donor : sharedDonor,
+      volunteerName: sharedVolunteer,
+      notes: item.notes || '',
+      createdAt: new Date().toISOString(),
+    };
+    entries.push(entry);
+    created.push(entry);
+  }
+  if (created.length > 0) writeEntries(entries);
+  res.status(201).json({ count: created.length, entries: created });
+});
+
 app.get('/api/dashboard', (req, res) => {
   const entries = readEntries();
   const now = new Date();

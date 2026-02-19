@@ -75,6 +75,35 @@ def add_entry(food_type, item_name, quantity, unit, expiry_date, donor="", volun
     return entry
 
 
+def add_entries_batch(items, volunteer_name="", default_donor=""):
+    """Add multiple entries at once. items = list of dicts with foodType, itemName, quantity, unit, expiryDate, donor (optional), notes (optional)."""
+    import time
+    import random
+    import string
+    entries = read_entries()
+    created = []
+    for item in items:
+        eid = f"entry-{int(time.time() * 1000)}-{''.join(random.choices(string.ascii_lowercase + string.digits, k=7))}"
+        donor = item.get("donor") if item.get("donor") not in (None, "") else default_donor
+        entry = {
+            "id": eid,
+            "foodType": item.get("foodType") or "Other",
+            "itemName": item.get("itemName") or "",
+            "quantity": float(item.get("quantity")) if item.get("quantity") is not None else 0,
+            "unit": item.get("unit") or "lbs",
+            "expiryDate": item.get("expiryDate") or None,
+            "donor": donor or "",
+            "volunteerName": volunteer_name or "",
+            "notes": item.get("notes") or "",
+            "createdAt": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+        }
+        entries.append(entry)
+        created.append(entry)
+    if created:
+        write_entries(entries)
+    return created
+
+
 def _parse_date(s):
     """Parse YYYY-MM-DD or ISO datetime to date."""
     if not s:
