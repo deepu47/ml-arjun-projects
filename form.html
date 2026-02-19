@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Rescue – Volunteer Entry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="form.css">
+</head>
+<body>
+  <div class="form-page">
+    <nav class="nav nav--main">
+      <a href="index.html">Operations</a>
+      <a href="supervisor.html">Supervisor</a>
+      <a href="warehouse.html">Warehouse</a>
+      <a href="form.html" class="nav--active">+ Volunteer entry</a>
+    </nav>
+    <header class="form-header">
+      <a href="index.html" class="form-header__back">← Dashboard</a>
+      <h1>Food Rescue – Volunteer Entry</h1>
+      <p class="form-header__sub">Enter rescued food details. Data appears on the live dashboard and triggers alerts for items near expiry.</p>
+    </header>
+
+    <form id="rescueForm" class="rescue-form">
+      <div class="form-grid">
+        <div class="field">
+          <label for="foodType">Food type <span class="required">*</span></label>
+          <select id="foodType" name="foodType" required>
+            <option value="">Select type</option>
+            <option value="Frozen">Frozen</option>
+            <option value="Produce">Produce</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Bakery">Bakery</option>
+            <option value="Canned">Canned</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="field field--wide">
+          <label for="itemName">Item name / description <span class="required">*</span></label>
+          <input type="text" id="itemName" name="itemName" placeholder="e.g. Mixed vegetables, Bread rolls" required>
+        </div>
+
+        <div class="field">
+          <label for="quantity">Quantity <span class="required">*</span></label>
+          <input type="number" id="quantity" name="quantity" min="0" step="0.1" placeholder="0" required>
+        </div>
+
+        <div class="field">
+          <label for="unit">Unit</label>
+          <select id="unit" name="unit">
+            <option value="lbs">lbs</option>
+            <option value="kg">kg</option>
+            <option value="units">units</option>
+            <option value="bags">bags</option>
+            <option value="boxes">boxes</option>
+          </select>
+        </div>
+
+        <div class="field field--wide">
+          <label for="expiryDate">Expiry / use-by date <span class="required">*</span></label>
+          <input type="date" id="expiryDate" name="expiryDate" required>
+          <span class="field-hint">Frozen & produce near this date trigger supervisor alerts every 2 hours.</span>
+        </div>
+
+        <div class="field field--wide">
+          <label for="donor">Donor / source</label>
+          <input type="text" id="donor" name="donor" placeholder="Store or donor name">
+        </div>
+
+        <div class="field field--wide">
+          <label for="volunteerName">Your name (volunteer)</label>
+          <input type="text" id="volunteerName" name="volunteerName" placeholder="Optional">
+        </div>
+
+        <div class="field field--wide">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" rows="2" placeholder="Storage location, special handling, etc."></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn--primary">Submit rescue entry</button>
+        <button type="reset" class="btn btn--secondary">Clear</button>
+      </div>
+
+      <div id="formMessage" class="form-message" aria-live="polite"></div>
+    </form>
+  </div>
+  <script src="form.js"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Rescue Operations Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="dashboard">
+    <nav class="nav nav--main">
+      <a href="index.html" class="nav--active">Operations</a>
+      <a href="supervisor.html">Supervisor</a>
+      <a href="warehouse.html">Warehouse</a>
+      <a href="form.html">+ Volunteer entry</a>
+    </nav>
+    <header class="header">
+      <h1>Food Rescue Operations</h1>
+      <div class="header-meta">
+        <a href="form.html" class="header-link">+ Volunteer entry</a>
+        <span class="last-updated">Updated: <strong id="lastUpdated">--</strong></span>
+        <span class="period">Last 7 days</span>
+      </div>
+    </header>
+
+    <main class="metrics-grid">
+      <article class="card card--primary">
+        <div class="card__icon" aria-hidden="true">📦</div>
+        <h2 class="card__label">Food Rescued</h2>
+        <p class="card__value" id="foodRescued">--</p>
+        <p class="card__unit">lbs/day</p>
+        <div class="card__spark" id="sparkRescued" aria-hidden="true"></div>
+      </article>
+
+      <article class="card">
+        <div class="card__icon" aria-hidden="true">⚠️</div>
+        <h2 class="card__label">Spoilage</h2>
+        <p class="card__value" id="spoilage">--</p>
+        <p class="card__unit">%</p>
+        <div class="card__trend card__trend--down" id="trendSpoilage"></div>
+      </article>
+
+      <article class="card">
+        <div class="card__icon" aria-hidden="true">⏱</div>
+        <h2 class="card__label">Avg Pickup → Storage</h2>
+        <p class="card__value" id="pickupStorage">--</p>
+        <p class="card__unit">minutes</p>
+        <div class="card__trend" id="trendPickup"></div>
+      </article>
+
+      <article class="card">
+        <div class="card__icon" aria-hidden="true">❄️</div>
+        <h2 class="card__label">Cold Food Turnaround</h2>
+        <p class="card__value" id="coldTurnaround">--</p>
+        <p class="card__unit">minutes</p>
+        <div class="card__trend" id="trendCold"></div>
+      </article>
+
+      <article class="card card--wide">
+        <div class="card__icon" aria-hidden="true">👥</div>
+        <h2 class="card__label">Volunteer Utilization Rate</h2>
+        <p class="card__value" id="volunteerUtil">--</p>
+        <p class="card__unit">%</p>
+        <div class="card__bar">
+          <div class="card__bar-fill" id="volunteerBar" style="width: 0%"></div>
+        </div>
+        <p class="card__hint" id="volunteerHint">--</p>
+      </article>
+
+      <section class="card card--wide card--section">
+        <h2 class="card__label">⚠️ Near expiry (Frozen & Produce)</h2>
+        <p class="card__hint">Supervisor alerts run every 2 hours for items expiring within 48 hours. Alerts are logged in the server console and listed below.</p>
+        <div id="recentAlerts" class="alerts-inline"></div>
+        <div class="table-wrap">
+          <table class="data-table" aria-label="Near expiry items">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Expiry</th>
+                <th>Donor</th>
+              </tr>
+            </thead>
+            <tbody id="nearExpiryBody">
+              <tr><td colspan="5" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card card--wide card--section">
+        <h2 class="card__label">📋 Recent rescue entries (live)</h2>
+        <div class="table-wrap">
+          <table class="data-table" aria-label="Recent entries">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Expiry</th>
+                <th>Donor</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="recentEntriesBody">
+              <tr><td colspan="6" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Dashboard refreshes every 30 seconds. Alerts for frozen & produce near expiry run every 2 hours.</p>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supervisor Alert Board – Food Rescue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="supervisor.css">
+</head>
+<body>
+  <div class="board supervisor-board">
+    <nav class="nav">
+      <a href="index.html">Operations</a>
+      <a href="supervisor.html" class="nav--active">Supervisor</a>
+      <a href="warehouse.html">Warehouse</a>
+      <a href="form.html">+ Volunteer entry</a>
+    </nav>
+
+    <header class="header">
+      <h1>Supervisor Alert Board</h1>
+      <div class="header-meta">
+        <span class="last-updated">Updated: <strong id="lastUpdated">--</strong></span>
+        <span class="period">Auto-refresh 30s</span>
+      </div>
+    </header>
+
+    <div class="alert-summary">
+      <article class="card alert-summary__card alert-summary__card--danger">
+        <span class="card__icon" aria-hidden="true">⚠️</span>
+        <h2 class="card__label">Items needing action</h2>
+        <p class="card__value" id="alertCount">0</p>
+        <p class="card__unit">Frozen & produce expiring within 48h</p>
+      </article>
+      <article class="card alert-summary__card">
+        <span class="card__icon" aria-hidden="true">❄️</span>
+        <h2 class="card__label">Frozen</h2>
+        <p class="card__value" id="frozenCount">0</p>
+      </article>
+      <article class="card alert-summary__card">
+        <span class="card__icon" aria-hidden="true">🥬</span>
+        <h2 class="card__label">Produce</h2>
+        <p class="card__value" id="produceCount">0</p>
+      </article>
+    </div>
+
+    <div class="filter-bar">
+      <span class="filter-bar__label">Show:</span>
+      <button type="button" class="filter-btn filter-btn--active" data-filter="all">All</button>
+      <button type="button" class="filter-btn" data-filter="frozen">Frozen</button>
+      <button type="button" class="filter-btn" data-filter="produce">Produce</button>
+    </div>
+
+    <section class="alert-cards" id="alertCards">
+      <p class="empty-state" id="alertCardsEmpty">Loading…</p>
+    </section>
+
+    <section class="card card--wide card--section">
+      <h2 class="card__label">Alert history (sent to supervisor)</h2>
+      <p class="card__hint">Alerts are generated every 2 hours for items expiring within 48 hours.</p>
+      <div class="table-wrap">
+        <table class="data-table" aria-label="Alert history">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Expiry</th>
+              <th>Donor</th>
+            </tr>
+          </thead>
+          <tbody id="alertHistoryBody">
+            <tr><td colspan="6" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>Supervisor alert board – near-expiry frozen and produce only. Refresh every 30 seconds.</p>
+    </footer>
+  </div>
+  <script src="supervisor.js"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warehouse Dashboard – Food Rescue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="warehouse.css">
+</head>
+<body>
+  <div class="board warehouse-board">
+    <nav class="nav">
+      <a href="index.html">Operations</a>
+      <a href="supervisor.html">Supervisor</a>
+      <a href="warehouse.html" class="nav--active">Warehouse</a>
+      <a href="form.html">+ Volunteer entry</a>
+    </nav>
+
+    <header class="header">
+      <h1>Warehouse Dashboard</h1>
+      <div class="header-meta">
+        <span class="last-updated">Updated: <strong id="lastUpdated">--</strong></span>
+        <span class="period">Auto-refresh 30s</span>
+      </div>
+    </header>
+
+    <section class="warehouse-metrics">
+      <article class="card card--primary">
+        <div class="card__icon" aria-hidden="true">📦</div>
+        <h2 class="card__label">Total items in system</h2>
+        <p class="card__value" id="totalItems">0</p>
+        <p class="card__unit">entries</p>
+      </article>
+      <article class="card">
+        <div class="card__icon" aria-hidden="true">⚖️</div>
+        <h2 class="card__label">Total quantity</h2>
+        <p class="card__value" id="totalQuantity">0</p>
+        <p class="card__unit">lbs</p>
+      </article>
+      <article class="card">
+        <div class="card__icon" aria-hidden="true">📥</div>
+        <h2 class="card__label">Recent intake (7 days)</h2>
+        <p class="card__value" id="recentIntake">0</p>
+        <p class="card__unit">items</p>
+      </article>
+    </section>
+
+    <section class="card card--wide card--section">
+      <h2 class="card__label">Inventory by category</h2>
+      <div class="category-blocks" id="categoryBlocks">
+        <p class="empty-state">Loading…</p>
+      </div>
+    </section>
+
+    <section class="card card--wide card--section">
+      <h2 class="card__label">Recent intake (latest first)</h2>
+      <div class="table-wrap">
+        <table class="data-table" aria-label="Recent intake">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Expiry</th>
+              <th>Donor</th>
+              <th>Received</th>
+            </tr>
+          </thead>
+          <tbody id="recentIntakeBody">
+            <tr><td colspan="6" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card card--wide card--section">
+      <h2 class="card__label">Full inventory</h2>
+      <p class="card__hint">All rescued food entries. Sort by expiry to prioritize distribution.</p>
+      <div class="table-wrap">
+        <table class="data-table data-table--warehouse" aria-label="Full inventory">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Expiry</th>
+              <th>Donor</th>
+              <th>Received</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryBody">
+            <tr><td colspan="6" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>Warehouse dashboard – inventory and intake. Refreshes every 30 seconds.</p>
+    </footer>
+  </div>
+  <script src="warehouse.js"></script>
+</body>
+</html>
