@@ -19,17 +19,33 @@ function ensureDataDir() {
 
 function rowToEntry(row) {
   const qty = row.Quantity;
+  const normalizeDate = (value) => {
+    if (value == null || value === '') return null;
+    if (value instanceof Date && !isNaN(value.getTime())) return value.toISOString().slice(0, 10);
+    const parsed = new Date(value);
+    if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+    const s = String(value).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    return null;
+  };
+  const normalizeCreatedAt = (value) => {
+    if (value == null || value === '') return new Date().toISOString();
+    if (value instanceof Date && !isNaN(value.getTime())) return value.toISOString();
+    const parsed = new Date(value);
+    if (!isNaN(parsed.getTime())) return parsed.toISOString();
+    return String(value);
+  };
   return {
     id: row.Id || '',
     foodType: row.FoodType || 'Other',
     itemName: row.ItemName || '',
     quantity: qty != null && qty !== '' ? Number(qty) : 0,
     unit: row.Unit || 'lbs',
-    expiryDate: row.ExpiryDate != null && row.ExpiryDate !== '' ? String(row.ExpiryDate).slice(0, 10) : null,
+    expiryDate: normalizeDate(row.ExpiryDate),
     donor: row.Donor || '',
     volunteerName: row.VolunteerName || '',
     notes: row.Notes || '',
-    createdAt: row.CreatedAt || new Date().toISOString(),
+    createdAt: normalizeCreatedAt(row.CreatedAt),
   };
 }
 
@@ -52,7 +68,7 @@ function readEntriesFromExcel() {
   ensureDataDir();
   if (!fs.existsSync(EXCEL_FILE)) return [];
   try {
-    const wb = XLSX.readFile(EXCEL_FILE);
+    const wb = XLSX.readFile(EXCEL_FILE, { cellDates: true });
     const ws = wb.Sheets[SHEET_NAME] || wb.Sheets[wb.SheetNames[0]];
     if (!ws) return [];
     const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
@@ -65,8 +81,8 @@ function readEntriesFromExcel() {
 
 function writeEntriesToExcel(entries) {
   ensureDataDir();
-  const rows = [HEADERS, ...(entries || []).map(entryToRow)];
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const rows = (entries || []).map(entryToRow);
+  const ws = XLSX.utils.json_to_sheet(rows, { header: HEADERS });
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, SHEET_NAME);
   XLSX.writeFile(wb, EXCEL_FILE);
@@ -97,12 +113,16 @@ function mapImportedRow(rawRow) {
   const str = (v) => (v !== undefined && v !== null ? String(v).trim() : '');
   const dateStr = (v) => {
     if (v == null || v === '') return null;
+    if (v instanceof Date && !isNaN(v.getTime())) return v.toISOString().slice(0, 10);
     if (typeof v === 'number' && v > 0) {
       const d = new Date((v - 25569) * 86400 * 1000);
       return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
     }
-    const s = String(v).trim().slice(0, 10);
-    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : s || null;
+    const parsed = new Date(v);
+    if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+    const s = String(v).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    return null;
   };
   const foodTypeAliases = ['food type', 'foodtype', 'type', 'category'];
   const itemNameAliases = ['item name', 'itemname', 'item', 'description', 'food item'];
