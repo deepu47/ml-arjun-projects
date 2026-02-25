@@ -45,6 +45,11 @@
         <h2 class="card__label">Produce</h2>
         <p class="card__value" id="produceCount">0</p>
       </article>
+      <article class="card alert-summary__card">
+        <span class="card__icon" aria-hidden="true">🥛</span>
+        <h2 class="card__label">Dairy</h2>
+        <p class="card__value" id="dairyCount">0</p>
+      </article>
     </div>
 
     <div class="filter-bar">
@@ -60,7 +65,7 @@
 
     <section class="card card--wide card--section">
       <h2 class="card__label">Alert history (sent to supervisor)</h2>
-      <p class="card__hint">Alerts are generated every 2 hours for items expiring within 48 hours.</p>
+      <p class="card__hint">Alerts are generated every 2 hours for frozen, produce, and dairy expiring within 48 hours.</p>
       <div class="table-wrap">
         <table class="data-table" aria-label="Alert history">
           <thead>
@@ -81,7 +86,7 @@
     </section>
 
     <footer class="footer">
-      <p>Supervisor alert board – near-expiry frozen and produce only. Refresh every 30 seconds.</p>
+      <p>Supervisor alert board – near-expiry frozen  produce, and dairy. Refresh every 30 seconds.</p>
     </footer>
   </div>
   <script src="supervisor.js"></script>

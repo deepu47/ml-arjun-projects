@@ -19,16 +19,19 @@ st.caption(f"Updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
 near = get_near_expiry()
 frozen_count = sum(1 for e in near if (e.get("foodType") or "").lower() == "frozen")
 produce_count = sum(1 for e in near if (e.get("foodType") or "").lower() == "produce")
+dairy_count = sum(1 for e in near if (e.get("foodType") or "").lower() == "dairy")
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 with col1:
-    st.metric("Items needing action", len(near), "Frozen & produce within 48h")
+    st.metric("Items needing action", len(near), "Frozen,produce&dairy within 48h")
 with col2:
     st.metric("Frozen", frozen_count)
 with col3:
     st.metric("Produce", produce_count)
+with col4:
+    st.metric("Dairy", dairy_count)
 
-filter_type = st.radio("Show", ["All", "Frozen", "Produce"], horizontal=True)
+filter_type = st.radio("Show", ["All", "Frozen", "Produce", "Dairy"], horizontal=True)
 filtered = (
     near
     if filter_type == "All"

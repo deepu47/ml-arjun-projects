@@ -13,7 +13,7 @@ ENTRIES_FILE = os.path.join(DATA_DIR, "entries.json")
 EXCEL_FILE = os.path.join(DATA_DIR, "food_rescue_entries.xlsx")
 ALERTS_FILE = os.path.join(DATA_DIR, "alerts.json")
 HOURS_NEAR_EXPIRY = 48
-ALERT_CATEGORIES = ["frozen", "produce"]
+ALERT_CATEGORIES = ["frozen", "produce","dairy"]
 
 
 def _ensure_data_dir():

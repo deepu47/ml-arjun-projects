@@ -61,7 +61,7 @@
 
     container.innerHTML = filtered.map(function (item) {
       var type = (item.foodType || '').toLowerCase();
-      var typeClass = type === 'frozen' ? 'alert-card--frozen' : type === 'produce' ? 'alert-card--produce' : '';
+      var typeClass = type === 'frozen' ? 'alert-card--frozen' : type === 'produce' ? 'alert-card--produce' : type === 'dairy' ? 'alert-card--dairy' : '';
       return (
         '<div class="alert-card ' + typeClass + '">' +
           '<div class="alert-card__type">' + (item.foodType || '') + '</div>' +
@@ -95,6 +95,7 @@
     setText('alertCount', list.length);
     setText('frozenCount', list.filter(function (e) { return (e.foodType || '').toLowerCase() === 'frozen'; }).length);
     setText('produceCount', list.filter(function (e) { return (e.foodType || '').toLowerCase() === 'produce'; }).length);
+    setText('dairyCount', list.filter(function (e) { return (e.foodType || '').toLowerCase() === 'dairy'; }).length);
   }
 
   function fetchData() {
